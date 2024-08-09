@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Groupie Trackers - Artists</title>
+    <title>Groupie Trackers - Relation</title>
     <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
@@ -11,10 +11,10 @@
         <nav>
             <ul>
                 <li><a href="/">Home</a></li>
-                <li><a href="/artists" class="active">Artists</a></li>
+                <li><a href="/artists">Artists</a></li>
                 <li><a href="/locations">Locations</a></li>
                 <li><a href="/dates">Dates</a></li>
-                <li><a href="/relation">Relations</a></li>
+                <li><a href="/relation" class="active">Relations</a></li>
             </ul>
         </nav>
         <form action="/search" method="GET" class="search-form">
@@ -23,22 +23,22 @@
         </form>
     </header>
     <main>
-        <h1>Artists</h1>
-        <section class="artist-grid">
+        <h1>Relation between Dates and Locations</h1>
+        <section class="relation-list">
             {{range .}}
-            <article class="artist-card">
-                <img src="{{.Image}}" 
-                     srcset="{{.Image}} 1x, {{.Image}} 2x" 
-                     alt="{{.Name}}" 
-                     loading="lazy">
-                <h2>{{.Name}}</h2>
-                <p>Created: {{.CreationDate}}</p>
-                <p>First Album: {{.FirstAlbum}}</p>
+            <article class="relation-card">
                 <details>
-                    <summary>Members</summary>
+                    <summary>Artist ID: {{.ID}}</summary>
                     <ul>
-                        {{range .Members}}
-                        <li>{{.}}</li>
+                        {{range $date, $locations := .DatesLocations}}
+                        <li>
+                            <h3>{{$date}}</h3>
+                            <ul>
+                                {{range $locations}}
+                                <li>{{.}}</li>
+                                {{end}}
+                            </ul>
+                        </li>
                         {{end}}
                     </ul>
                 </details>
