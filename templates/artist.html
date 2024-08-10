@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Artist.Name}} - Groupie Trackers</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>{{.Artist.Name}}</h1>
+    <img src="{{.Artist.Image}}" alt="{{.Artist.Name}}">
+    <h2>Members</h2>
+    <ul>
+        {{range .Artist.Members}}
+        <li>{{.}}</li>
+        {{end}}
+    </ul>
+    <p>Creation Date: {{.Artist.CreationDate}}</p>
+    <p>First Album: {{.Artist.FirstAlbum}}</p>
+    <h2>Concerts</h2>
+    <div id="concert-list"></div>
+    <canvas id="concertChart"></canvas>
+    <script>
+        const relationData = {{.Relation.Index}};
+        const concertData = relationData[0].datesLocations;
+        let concertList = document.getElementById('concert-list');
+        for (let location in concertData) {
+            let dates = concertData[location].join(', ');
+            concertList.innerHTML += `<p><strong>${location}:</strong> ${dates}</p>`;
+        }
+        createBarChart(concertData);
+    </script>
+    <script src="/static/js/chart.js"></script>
+</body>
+</html>

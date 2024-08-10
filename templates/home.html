@@ -4,47 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Groupie Trackers</title>
-    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
-    <header>
-        <h1>Groupie Trackers</h1>
-        <nav>
-            <ul>
-                <li><a href="/">Home</a></li>
-                <li><a href="/artists">Artists</a></li>
-                <li><a href="/locations">Locations</a></li>
-                <li><a href="/dates">Dates</a></li>
-                <li><a href="/relation">Relation</a></li>
-            </ul>
-        </nav>
-    </header>
-
-    <main>
-        <section>
-            <h2>Welcome to Groupie Trackers</h2>
-            <p>Explore information about your favorite bands and artists, including their concert locations and dates.</p>
-        </section>
-
-        <section>
-            <h2>Features</h2>
-            <ul>
-                <li>Browse a list of artists and bands</li>
-                <li>View detailed information about each artist</li>
-                <li>Check upcoming concert locations</li>
-                <li>See concert dates for your favorite artists</li>
-                <li>Discover the relationship between dates and locations</li>
-            </ul>
-        </section>
-
-        <section>
-            <h2>Start Exploring</h2>
-            <p>Click on the links above to start your journey through the world of music!</p>
-        </section>
-    </main>
-
-    <footer>
-        <p>&copy; 2024 Groupie Trackers. All rights reserved.</p>
-    </footer>
+    <h1>Groupie Trackers</h1>
+    <div>
+        <input type="text" id="search-input" placeholder="Search artists...">
+        <button id="search-button">Search</button>
+    </div>
+    <div id="artist-container">
+        {{range .Artists}}
+        <div class="artist-card" data-id="{{.ID}}">
+            <img src="{{.Image}}" alt="{{.Name}}">
+            <h2>{{.Name}}</h2>
+            <p>Created: {{.CreationDate}}</p>
+        </div>
+        {{end}}
+    </div>
+    <script src="/static/js/main.js"></script>
 </body>
 </html>
