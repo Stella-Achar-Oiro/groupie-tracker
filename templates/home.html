@@ -1,26 +1,108 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Groupie Trackers</title>
-    <link rel="stylesheet" href="/static/css/style.css">
-</head>
-<body>
-    <h1>Groupie Trackers</h1>
-    <div>
-        <input type="text" id="search-input" placeholder="Search artists...">
-        <button id="search-button">Search</button>
-    </div>
-    <div id="artist-container">
-        {{range .Artists}}
-        <div class="artist-card" data-id="{{.ID}}">
-            <img src="{{.Image}}" alt="{{.Name}}">
-            <h2>{{.Name}}</h2>
-            <p>Created: {{.CreationDate}}</p>
-        </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Groupie Tracker</title>
+    <link rel="icon" href="/static/img/icon/g.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+    <link href="/static/css/home.css" rel="stylesheet">
+  </head>
+  <body>
+    <header>
+      <nav class="navbar">
+        <a href="/"><img src="static/img/icon/logo.png" alt="Logo"></a>
+        <ul class="topnav">
+          <button id="btn">Filters</button>
+        </ul>
+          <input class="Searchbar" list="listArtists" type="text" placeholder="Search..." onchange="location = this.value;">
+          <datalist id="listArtists">
+            {{range $arti := .ArtistsData}}
+            <option value="/artists/{{$arti.ID}}">{{$arti.NAME}}</option>
+            {{end}}
+          </datalist>
+      </nav>
+    </header>
+    
+    <div class="main_content">
+      <div id="filter">
+        <h2>Refine your search</h2>
+        <br>
+        <form class="form-filter" action="/filter">
+          <div class="textarea">
+            <ul>
+              <li>
+                <label for="checkCreation">First Appearance: </label>
+                <input type="text" name="creationDate" id="idCreationDate" placeholder="Enter a year (2005)"> 
+              </li>
+              <br>
+              <li>
+                <label for="firstAlbum">First Album Date: </label>
+                <select name="firstAlbum" id="firstAlbum">
+                    <option value="" selected="selected">No Date</option>
+                  {{range $arti := .ArtistsData}}
+                    <option value="{{$arti.FIRST_ALBUM}}">{{$arti.FIRST_ALBUM}}</option>
+                  {{end}}
+                </select>
+              </li>
+              <br>
+              <li>
+                <label for="checkMembers">Number of Members: </label> 
+                <input type="range" min="1" max="8" step="1" name="members" id="idmembers" onChange="rangeSlide(this.value)" onmousemove="rangeSlide(this.value)">
+                <span id="membersSliders">1</span>
+              </li>
+              <br>
+              <li>
+                <label for="city">Cities: </label>
+                <select name="CitySearch" id="citysearch">
+                  <option value="" selected="selected">No City</option>
+                  {{range $loca := .LocationsData}}
+                    {{range $idk := $loca.LOCATIONS}}
+                    <option value="{{.}}">{{.}}</option>
+                    {{end}}
+                  {{end}}
+                </select>
+              </li>
+              <br>
+            </ul>
+          </div>
+          <button id="btn-filter">Filter</button>
+        </form>
+      </div>
+      <div class="card">
+        {{range $arti := .ArtistsData}}
+          <div class="artists">
+            <a href='/artists/{{$arti.ID}}'/>
+              <div class="descrip">
+                <h3> {{$arti.NAME}}</h3>
+              </div>
+              <img src="{{$arti.IMAGE}}" alt="{{$arti.NAME}}">
+            </a>
+          </div>
         {{end}}
+      </div>
     </div>
-    <script src="/static/js/main.js"></script>
-</body>
+  </body>
+  <script>
+    var btn = document.getElementById("btn");
+    var filter = document.getElementById("filter");
+
+    btn.addEventListener("click", () => {
+      if(getComputedStyle(filter).display != "none"){
+        filter.style.display = "none";
+      } else {
+        filter.style.display = "block";
+      }
+    })
+
+    function rangeSlide(value) {
+      document.getElementById('membersSliders').innerHTML = value;
+    }
+
+    const zoom = () => {
+      document.body.style.zoom = "80%" 
+    }
+  </script>
 </html>

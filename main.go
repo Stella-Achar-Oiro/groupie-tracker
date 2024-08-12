@@ -1,23 +1,28 @@
 package main
 
 import (
-	"groupie-tracker/internal/handlers"
-	"groupie-tracker/internal/middleware"
-	"log"
+	"fmt"
 	"net/http"
+
+	"groupie-tracker/handlers"
 )
 
 func main() {
-	// Serve static files
-	fs := http.FileServer(http.Dir("static"))
-	http.Handle("/static/", http.StripPrefix("/static/", fs))
+	// Serving templates files
+	filesServer := http.FileServer(http.Dir("./static"))
+	http.Handle("/static/", http.StripPrefix("/static/", filesServer))
 
-	// API routes
-	http.HandleFunc("/", middleware.LogRequest(handlers.HomeHandler))
-	http.HandleFunc("/api/artists", middleware.RateLimit(handlers.ArtistsHandler))
-	http.HandleFunc("/api/search", middleware.RateLimit(handlers.SearchHandler))
-	http.HandleFunc("/artist/", middleware.LogRequest(handlers.ArtistDetailHandler))
+	// Index handler
+	http.HandleFunc("/", handlers.IndexHandler)
+	// mainPage Handler
+	http.HandleFunc("/home", handlers.HomeHandler)
+	// artist handler
+	http.HandleFunc("/artists/", handlers.ArtistHandler)
+	// fliter handler
+	http.HandleFunc("/filter", handlers.FilterHandler)
 
-	log.Println("Server starting on :8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	fmt.Println("Server started at http://localhost:8010/")
+
+	// Starting serveur
+	http.ListenAndServe(":8010", nil)
 }
