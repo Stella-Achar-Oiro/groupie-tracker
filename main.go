@@ -1,71 +1,23 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
-	"html/template"
+	"groupie-tracker/internal/handlers"
+	"groupie-tracker/internal/middleware"
+	"log"
 	"net/http"
 )
 
-type Artist struct {
-	ID           int      `json:"id"`
-	Name         string   `json:"name"`
-	Image        string   `json:"image"`
-	Members      []string `json:"members"`
-	CreationDate int      `json:"creationDate"`
-	FirstAlbum   string   `json:"firstAlbum"`
-}
-
 func main() {
-	http.HandleFunc("/", handleHome)
-	http.HandleFunc("/artists", handleArtists)
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+	// Serve static files
+	fs := http.FileServer(http.Dir("static"))
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
-	fmt.Println("Server is running on http://localhost:8080")
-	http.ListenAndServe(":8080", nil)
-}
+	// API routes
+	http.HandleFunc("/", middleware.LogRequest(handlers.HomeHandler))
+	http.HandleFunc("/api/artists", middleware.RateLimit(handlers.ArtistsHandler))
+	http.HandleFunc("/api/search", middleware.RateLimit(handlers.SearchHandler))
+	http.HandleFunc("/artist/", middleware.LogRequest(handlers.ArtistDetailHandler))
 
-func handleHome(w http.ResponseWriter, r *http.Request) {
-    if r.URL.Path != "/" {
-        http.NotFound(w, r)
-        return
-    }
-
-    tmpl, err := template.ParseFiles("templates/home.html")
-    if err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError)
-        return
-    }
-    tmpl.Execute(w, nil)
-}
-
-func handleArtists(w http.ResponseWriter, r *http.Request) {
-	artists, err := fetchArtists()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	tmpl, err := template.ParseFiles("templates/artists.html")
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	tmpl.Execute(w, artists)
-}
-
-func fetchArtists() ([]Artist, error) {
-	resp, err := http.Get("https://groupietrackers.herokuapp.com/api/artists")
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	var artists []Artist
-	err = json.NewDecoder(resp.Body).Decode(&artists)
-	if err != nil {
-		return nil, err
-	}
-
-	return artists, nil
+	log.Println("Server starting on :8080")
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
