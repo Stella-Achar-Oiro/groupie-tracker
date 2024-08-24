@@ -3,65 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Groupie Tracker</title>
+    <title>{{.Name}} - Groupie Tracker</title>
     <link rel="stylesheet" href="/static/css/artists.css">
     <link rel="icon" href="/static/img/icon/g.png">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;300;400;500;700;900&display=swap" rel="stylesheet">
 </head>
 <body>
+    <div class="main_content"></div>
     <div class="card">
         <div class="image">
-            <img src="{{.IMAGE}}" alt="Image Artistes">
+            <img src="{{.Image}}" alt="{{.Name}}">
         </div>
         <div class="info">
-            <p class="name">{{.NAME}}</p>
+            <p class="name">{{.Name}}</p>
             <br>
-            <p class="infotitle"><strong>First Appearance :</strong>{{.CREA_DATE}}</p>
-            <p class="infotitle"><strong>First Album Date :</strong> {{.FIRST_ALBUM}}</p>
-            <p class="members"><strong>Membres :</strong> 
+            <p class="infotitle"><strong>First Appearance:</strong> {{.CreationDate}}</p>
+            <p class="infotitle"><strong>First Album Date:</strong> {{.FirstAlbum}}</p>
+            <p class="members"><strong>Members:</strong>
                 <ul>
-                    {{range .MEMBERS}}
+                    {{range .Members}}
                     <li>{{.}}</li>
                     {{end}}
                 </ul>
             </p>
         </div>
         <div class="concerts">
-            <p class=""><strong>Concerts : </strong></p>
+            <p class="concerts-title"><strong>Concerts:</strong></p>
             <br>
-            {{ range $key, $value := .DATESLOCAT }}
-            <p class="cities">{{$key}}</p>                           
-            <p class="dates">
-                {{ range $value }}
+            {{range $location, $dates := .DatesLocations}}
+            <p class="cities">{{$location}}</p>
+            <ul class="dates">
+                {{range $dates}}
                 <li>{{.}}</li>
                 {{end}}
-            </p>
+            </ul>
             <br>
-            {{ end }}
+            {{end}}
         </div>
         <div id="map"></div>
-
         <div class="nav">
             <a class="back" onclick="history.go(-1);">Go Back</a>
         </div>
     </div>
-    <!--background-->
-    <div class="main_content"></div>
-    
 
+    <script type="text/javascript" src="https://js.api.here.com/v3/3.1/mapsjs-core.js"></script>
+    <script type="text/javascript" src="https://js.api.here.com/v3/3.1/mapsjs-service.js"></script>
+    <script type="text/javascript" src="https://js.api.here.com/v3/3.1/mapsjs-ui.js"></script>
+    <script type="text/javascript" src="https://js.api.here.com/v3/3.1/mapsjs-mapevents.js"></script>
+    <script src="/static/js/map.js"></script>
+    <script>
+        const zoom = () => {
+            document.body.style.zoom = "80%"
+        }
+        zoom();
+    </script>
 </body>
-<script type="text/javascript" src="https://js.api.here.com/v3/3.1/mapsjs-core.js"></script>
-<script type="text/javascript" src="https://js.api.here.com/v3/3.1/mapsjs-service.js"></script>
-<script type="text/javascript" src="https://js.api.here.com/v3/3.1/mapsjs-ui.js"></script>
-<script type="text/javascript" src="https://js.api.here.com/v3/3.1/mapsjs-mapevents.js"></script>
-<script src="/static/js/map.js"></script>
-<script>
-    const zoom = () => {
-        document.body.style.zoom = "80%" 
-      }
-</script>
-
-
-</html>r
+</html>

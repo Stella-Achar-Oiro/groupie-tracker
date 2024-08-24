@@ -8,148 +8,116 @@ body {
 
 * {
   margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 .image_presentation {
-    background-image: url("https://images.pexels.com/photos/1327430/pexels-photo-1327430.jpeg"); 
-    background-size: cover ;
-    background-position: center center;
-    background-repeat: no-repeat ;
-    width: 100vw;
-    height: 80vh;
-    text-align: center;
-    color: whitesmoke;
+  background-image: url("https://images.pexels.com/photos/1327430/pexels-photo-1327430.jpeg"); 
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  width: 100vw;
+  height: 80vh;
+  text-align: center;
+  color: whitesmoke;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .title-index {
-    position: relative;
-    font-size: 70px;
-    font-style: normal;
-    color: white;
-    text-shadow: 4px 4px rgb(0, 0, 0);
-    overflow: hidden;
-}
-
-h1 {
-    display: block;
-    font-size: 2em;
-    margin-block-start: 0.67em;
-    margin-block-end: 0.67em;
-    margin-inline-start: 0px;
-    margin-inline-end: 0px;
-    font-weight: bold;
+  font-size: 3.5em;
+  color: white;
+  text-shadow: 4px 4px rgb(0, 0, 0);
 }
 
 .text-title-index {
-    position: relative;
-    bottom: 5%;
-    font-size: 40px;
-    font-style: normal;
-    color: white;
-    text-shadow: 4px 4px rgb(0, 0, 0);
-    overflow: hidden;
+  font-size: 2em;
+  color: white;
+  text-shadow: 4px 4px rgb(0, 0, 0);
+  margin-top: 10px;
 }
 
-h2 {
-    display: block;
-    font-size: 1.5em;
-    margin-block-start: 0.83em;
-    margin-block-end: 0.83em;
-    margin-inline-start: 0px;
-    margin-inline-end: 0px;
-    font-weight: bold;
-}
-
-.button-index {
-    display: flex;
-    padding: 10px;
+h1, h2 {
+  font-weight: bold;
+  margin: 0;
 }
 
 .box-button {
-    display: flex;
-    width: 200px;
-    padding: 3px;
-    margin-top: 3vh;
-    margin-left: 45%;
-    justify-content: center;
-    background-color: rgb(236, 67, 16);
-    font-style: normal;
-    transform: skewX(-15deg);
-    box-shadow: 0 4px 10px 0 rgb(14, 14, 14);
+  display: inline-flex;
+  padding: 15px 30px;
+  margin-top: 3vh;
+  background-color: #EC4310;
+  border-radius: 5px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
 }
 
-.box-button:hover{
-    width: 250px;
-    transition: 0.5s;
-    box-shadow: 8px 8px #000000;
-    margin-left: 43%;
+.box-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
 }
 
-.button-index text{
-    font-size: 30px;
+.button-index {
+  font-size: 1.5em;
+  color: whitesmoke;
+  text-decoration: none;
 }
 
 a {
-    color: whitesmoke;
-    text-decoration: none;
+  color: whitesmoke;
+  text-decoration: none;
 }
 
-.infoprojet{
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 80vw;
-    margin-left: 10vw;
-    margin-right: 10vw;
-    padding: 30px;
+.infoprojet,
+.groupietckr {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80vw;
+  margin: 0 auto;
+  padding: 30px;
 }
 
-.groupietckr{
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 80vw;
-    margin-left: 10vw;
-    margin-right: 10vw;
-    padding: 30px;
-}
-
-.API img{
-    width:28vw;
-}
-
+.API img,
 .groupie img {
-    width:28vw;
+  width: 28vw;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
-.text{
-    text-align: justify;
-    margin: 4vw;
-    padding: 1vw;
+.text {
+  text-align: justify;
+  margin-left: 4vw;
+  padding: 1vw;
 }
 
 .text h3 {
-    font-size: 1.7em;
+  font-size: 2em;
+  margin-bottom: 15px;
 }
 
 .text p {
-    font-size: 1.4em;
+  font-size: 1.2em;
+  line-height: 1.5;
 }
-
 
 .footerdiv {
-    background-color: #000000;
-    color: whitesmoke;
-    width: 100vw;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
+  background-color: #000;
+  color: whitesmoke;
+  width: 100vw;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 20px 0;
 }
 
-
-.about-us{
-    width: 30vh;
+.about-us {
+  width: 30vh;
 }
+
 .about-us p {
-    text-align: justify;
+  text-align: justify;
+  line-height: 1.5;
 }
