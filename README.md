@@ -2,9 +2,7 @@ Groupie Tracker is a web application that displays information about music artis
 
 ## Project Structure
 groupie-tracker/
-├── cmd/
-│   └── server/
-│       └── main.go
+├── main.go
 ├── internal/
 │   ├── handlers/
 │   │   └── handlers.go
