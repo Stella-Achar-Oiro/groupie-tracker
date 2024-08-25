@@ -31,7 +31,7 @@ groupie-tracker/
 ## Setup
 
 1. Clone the repository:
-git clone https://github.com/yourusername/groupie-tracker.git
+git clone https://github.com/Stella-Achar-Oiro/groupie-tracker.git
 cd groupie-tracker
 
 2. Install dependencies:
