@@ -2,21 +2,36 @@ package handlers
 
 import (
 	"encoding/json"
-	"groupie-tracker/internal/models"
-	"groupie-tracker/internal/services"
 	"net/http"
 	"strings"
+
+	"groupie-tracker/internal/models"
+	"groupie-tracker/internal/services"
 )
 
 func GetAllData(w http.ResponseWriter, r *http.Request) {
-	data, err := services.FetchData()
-	if err != nil {
-		http.Error(w, "Failed to fetch data", http.StatusInternalServerError)
-		return
-	}
+	// Create a channel for fetching data
+	dataChan := make(chan *models.Datas)
+	errChan := make(chan error)
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(data)
+	// Fetch data in a goroutine
+	go func() {
+		data, err := services.FetchData()
+		if err != nil {
+			errChan <- err
+			return
+		}
+		dataChan <- data
+	}()
+
+	// Wait for data or an error
+	select {
+	case data := <-dataChan:
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(data)
+	case <-errChan:
+		http.Error(w, "Failed to fetch data", http.StatusInternalServerError)
+	}
 }
 
 func SearchArtists(w http.ResponseWriter, r *http.Request) {
@@ -26,19 +41,39 @@ func SearchArtists(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := services.FetchData()
-	if err != nil {
-		http.Error(w, "Failed to fetch data", http.StatusInternalServerError)
-		return
-	}
+	// Create channels for fetching data and filtering artists
+	dataChan := make(chan *models.Datas)
+	errChan := make(chan error)
+	filteredArtistsChan := make(chan []models.Artist)
 
-	var filteredArtists []models.Artist
-	for _, artist := range data.ArtistsData {
-		if strings.Contains(strings.ToLower(artist.Name), strings.ToLower(query)) {
-			filteredArtists = append(filteredArtists, artist)
+	// Fetch data in a goroutine
+	go func() {
+		data, err := services.FetchData()
+		if err != nil {
+			errChan <- err
+			return
 		}
-	}
+		dataChan <- data
+	}()
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(filteredArtists)
+	// Filter artists in another goroutine
+	go func() {
+		data := <-dataChan
+		var filteredArtists []models.Artist
+		for _, artist := range data.ArtistsData {
+			if strings.Contains(strings.ToLower(artist.Name), strings.ToLower(query)) {
+				filteredArtists = append(filteredArtists, artist)
+			}
+		}
+		filteredArtistsChan <- filteredArtists
+	}()
+
+	// Wait for filtered artists or an error
+	select {
+	case filteredArtists := <-filteredArtistsChan:
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(filteredArtists)
+	case <-errChan:
+		http.Error(w, "Failed to fetch data", http.StatusInternalServerError)
+	}
 }
