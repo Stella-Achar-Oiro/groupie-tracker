@@ -1,4 +1,3 @@
-const apiBaseUrl = '/api';
 let artists = [];
 let locations = [];
 let dates = [];
@@ -12,8 +11,8 @@ const searchInput = document.getElementById('search-input');
 
 async function fetchData() {
     try {
-        const response = await axios.get(`${apiBaseUrl}/data`);
-        const data = response.data;
+        const response = await fetch('/api/data');
+        const data = await response.json();
         artists = data.artists;
         locations = data.locations;
         dates = data.dates;
@@ -27,12 +26,13 @@ async function fetchData() {
 
 function renderArtists(artistsToRender) {
     artistGrid.innerHTML = '';
+    const fragment = document.createDocumentFragment();
     artistsToRender.forEach((artist, index) => {
         const artistCard = document.createElement('div');
         artistCard.className = 'artist-card';
-        artistCard.style.animationDelay = `${index * 0.1}s`;
+        artistCard.style.animationDelay = `${index * 0.05}s`;
         artistCard.innerHTML = `
-            <img src="${artist.image}" alt="${artist.name}" class="artist-image">
+            <img src="${artist.image}" alt="${artist.name}" class="artist-image" loading="lazy">
             <div class="artist-info">
                 <div class="artist-name">${artist.name}</div>
                 <div class="artist-details">
@@ -42,8 +42,9 @@ function renderArtists(artistsToRender) {
             </div>
         `;
         artistCard.addEventListener('click', () => showArtistDetails(artist));
-        artistGrid.appendChild(artistCard);
+        fragment.appendChild(artistCard);
     });
+    artistGrid.appendChild(fragment);
 }
 
 function showArtistDetails(artist) {
@@ -54,19 +55,64 @@ function showArtistDetails(artist) {
         <p><strong>Members:</strong> ${artist.members.join(', ')}</p>
         <p><strong>Creation Date:</strong> ${artist.creationDate}</p>
         <p><strong>First Album:</strong> ${artist.firstAlbum}</p>
-        <h3>Concert Locations and Dates</h3>
-        <ul id="concert-list"></ul>
+        <h3>Concert Information</h3>
+        <p>
+            <a href="#" id="show-locations">Locations</a> | 
+            <a href="#" id="show-dates">Dates</a> |
+            <a href="#" id="show-relations">Relations</a>
+        </p>
+        <div id="concert-info"></div>
     `;
 
-    const concertList = document.getElementById('concert-list');
-    for (const [location, dates] of Object.entries(artistRelation.datesLocations)) {
-        const listItem = document.createElement('li');
-        listItem.innerHTML = `<strong>${location}:</strong> ${dates.join(', ')}`;
-        concertList.appendChild(listItem);
-    }
+    document.getElementById('show-locations').addEventListener('click', (e) => {
+        e.preventDefault();
+        showLocations(artistRelation.datesLocations);
+    });
+
+    document.getElementById('show-dates').addEventListener('click', (e) => {
+        e.preventDefault();
+        showDates(artistRelation.datesLocations);
+    });
+
+    document.getElementById('show-relations').addEventListener('click', (e) => {
+        e.preventDefault();
+        showRelations(artistRelation.datesLocations);
+    });
+
+    showRelations(artistRelation.datesLocations);
 
     modal.style.display = 'block';
     initMap(artist, artistRelation.datesLocations);
+}
+
+function showRelations(datesLocations) {
+    const concertInfo = document.getElementById('concert-info');
+    const fragment = document.createDocumentFragment();
+    const ul = document.createElement('ul');
+    ul.id = 'concert-list';
+    for (const [location, dates] of Object.entries(datesLocations)) {
+        const li = document.createElement('li');
+        li.innerHTML = `<strong>${location}:</strong> ${dates.join(', ')}`;
+        ul.appendChild(li);
+    }
+    fragment.appendChild(ul);
+    concertInfo.innerHTML = '';
+    concertInfo.appendChild(fragment);
+}
+
+function showLocations(datesLocations) {
+    const concertInfo = document.getElementById('concert-info');
+    concertInfo.innerHTML = '<ul>' + 
+        Object.keys(datesLocations).map(location => `<li>${location}</li>`).join('') +
+    '</ul>';
+}
+
+function showDates(datesLocations) {
+    const concertInfo = document.getElementById('concert-info');
+    const allDates = Object.values(datesLocations).flat();
+    concertInfo.innerHTML = '<ul>' + 
+        allDates.map(date => `<li>${date}</li>`).join('') +
+    '</ul>';
 }
 
 function initMap(artist, datesLocations) {
@@ -103,6 +149,27 @@ function initMap(artist, datesLocations) {
         .catch(error => console.error('Error fetching location data:', error));
 }
 
+const debounce = (func, delay) => {
+    let timeoutId;
+    return (...args) => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => func.apply(null, args), delay);
+    };
+};
+
+searchInput.addEventListener('input', debounce(async (e) => {
+    const searchTerm = e.target.value.toLowerCase();
+    if (searchTerm.length > 0) {
+        const filteredArtists = artists.filter(artist => 
+            artist.name.toLowerCase().includes(searchTerm) ||
+            artist.members.some(member => member.toLowerCase().includes(searchTerm))
+        );
+        renderArtists(filteredArtists);
+    } else {
+        renderArtists(artists);
+    }
+}, 300));
+
 closeBtn.onclick = () => {
     modal.style.display = 'none';
 };
@@ -112,19 +179,5 @@ window.onclick = (event) => {
         modal.style.display = 'none';
     }
 };
-
-searchInput.addEventListener('input', async (e) => {
-    const searchTerm = e.target.value.toLowerCase();
-    if (searchTerm.length > 0) {
-        try {
-            const response = await axios.get(`${apiBaseUrl}/search?q=${searchTerm}`);
-            renderArtists(response.data);
-        } catch (error) {
-            console.error('Error searching artists:', error);
-        }
-    } else {
-        renderArtists(artists);
-    }
-});
 
 fetchData();
