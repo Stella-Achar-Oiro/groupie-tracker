@@ -1,55 +1,67 @@
 package main
+
 import (
-	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
-	"strings"
 	"time"
+
+	"groupie-tracker/internal/cache"
 	"groupie-tracker/internal/handlers"
-	"groupie-tracker/internal/routes"
+	"groupie-tracker/internal/models"
+	"groupie-tracker/internal/service"
 )
+
+var (
+	indexTpl *template.Template
+	logger   *log.Logger
+)
+
+const cacheDuration = 1 * time.Hour
+
 func main() {
-	if len(os.Args) != 1 {
-		fmt.Println("Usage: go run main.go")
-		return
+	// Initialize logger
+	logger = log.New(os.Stdout, "GROUPIE-TRACKER: ", log.Ldate|log.Ltime|log.Lshortfile)
+
+	// Initialize models package with required constants
+	models.InitConstants(service.GetMapboxAccessToken(), service.GetMapboxGeocodingAPI())
+	logger.Println("Models initialized with Mapbox constants")
+
+	// Initialize cache
+	cache.Init(cacheDuration)
+	logger.Println("Cache initialized with duration:", cacheDuration)
+
+	// Initial data fetch
+	if err := cache.RefreshCache(); err != nil {
+		logger.Fatalf("Failed to fetch initial data: %v", err)
 	}
-	mux := routes.SetupRoutes()
-	// Create a new file server handler for static files
-	fs := http.FileServer(http.Dir("./static"))
-	// Serve static files from the /static/ URL path
-	mux.Handle("/static/", http.StripPrefix("/static/", fs))
-	// Serve index.html from the templates folder
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		if !strings.HasPrefix(r.URL.Path, "/static/") && r.URL.Path != "/" {
-			handlers.ErrorHandler(w, r, http.StatusNotFound, "Page Not Found")
-			return
-		}
-		// Check if index.html exists before proceeding
-	tmplPath := "templates/index.html"
-	if _, err := os.Stat(tmplPath); os.IsNotExist(err) {
-		handlers.ErrorHandler(w, r, http.StatusInternalServerError, "Failed to fetch data")
-		return
+	logger.Println("Initial data fetched successfully")
+
+	// Parse HTML template
+	var err error
+	indexTpl, err = template.ParseFiles("templates/index.html")
+	if err != nil {
+		logger.Fatalf("Failed to parse template: %v", err)
 	}
-		http.ServeFile(w, r, "./templates/index.html")
-		log.Println("Template executed successfully")
-	})
-	// Create a custom server with timeouts
-	server := &http.Server{
-		Addr:         ":8020",
-		Handler:      mux,
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 10 * time.Second,
-		IdleTimeout:  120 * time.Second,
+	logger.Println("HTML template parsed successfully")
+
+	// Set up routes
+	http.HandleFunc("/", handlers.HandleIndex(indexTpl))
+	http.HandleFunc("/api/search", handlers.HandleSearch)
+	http.HandleFunc("/api/artist/", handlers.HandleArtist)
+	http.HandleFunc("/api/suggestions", handlers.HandleSuggestions)
+
+	// Serve static files
+	fs := http.FileServer(http.Dir("static"))
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
+
+	logger.Println("Routes and static file server set up")
+
+	// Start server
+	port := ":8080"
+	logger.Printf("Server starting on %s", port)
+	if err := http.ListenAndServe(port, nil); err != nil {
+		logger.Fatalf("Server failed to start: %v", err)
 	}
-	// Create a channel to listen for errors
-	errChan := make(chan error)
-	// Start the server in a goroutine
-	go func() {
-		log.Println("Server starting on http://localhost:8020")
-		errChan <- server.ListenAndServe()
-	}()
-	// Wait for an error from the server
-	err := <-errChan
-	log.Fatal(err)
 }
