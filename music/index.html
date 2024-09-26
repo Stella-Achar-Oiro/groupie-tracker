@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Groupie Tracker</title>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        #search-container {
+            margin-bottom: 20px;
+        }
+        #suggestions {
+            position: absolute;
+            border: 1px solid #ddd;
+            border-top: none;
+            z-index: 99;
+        }
+        .suggestion-item {
+            padding: 10px;
+            cursor: pointer;
+            background-color: #f1f1f1;
+        }
+        .suggestion-item:hover {
+            background-color: #ddd;
+        }
+        #results-container {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .artist-card {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 10px;
+            padding: 10px;
+            width: 200px;
+            cursor: pointer;
+        }
+        .artist-card img {
+            max-width: 100%;
+            height: auto;
+        }
+        #artist-details {
+            margin-top: 20px;
+        }
+        #map { 
+            height: 400px; 
+            width: 100%;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Groupie Tracker</h1>
+    <div id="search-container">
+        <input type="text" id="search-input" placeholder="Search for artists...">
+        <div id="suggestions"></div>
+    </div>
+    <div id="results-container"></div>
+    <div id="artist-details"></div>
+    <div id="map"></div>
+
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js"></script>
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1Ijoic3RlbGxhYWNoYXJvaXJvIiwiYSI6ImNtMWhmZHNlODBlc3cybHF5OWh1MDI2dzMifQ.wk3v-v7IuiSiPwyq13qdHw';
+        
+        const searchInput = document.getElementById('search-input');
+        const suggestionsContainer = document.getElementById('suggestions');
+        let map;
+
+        searchInput.addEventListener('input', () => {
+            const query = searchInput.value;
+            if (query.length > 1) {
+                fetch(`/api/suggestions?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(suggestions => displaySuggestions(suggestions))
+                    .catch(error => console.error('Error:', error));
+            } else {
+                suggestionsContainer.innerHTML = '';
+            }
+        });
+
+        function displaySuggestions(suggestions) {
+            suggestionsContainer.innerHTML = '';
+            suggestions.forEach(suggestion => {
+                const div = document.createElement('div');
+                div.className = 'suggestion-item';
+                div.textContent = `${suggestion.text} (${suggestion.type})`;
+                div.onclick = () => {
+                    searchInput.value = suggestion.text;
+                    suggestionsContainer.innerHTML = '';
+                    searchArtists(suggestion.text);
+                };
+                suggestionsContainer.appendChild(div);
+            });
+        }
+
+        function searchArtists(query) {
+            fetch(`/api/search?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => displayResults(data.artists))
+                .catch(error => console.error('Error:', error));
+        }
+
+        function displayResults(artists) {
+            const container = document.getElementById('results-container');
+            container.innerHTML = '';
+            artists.forEach(artist => {
+                const card = document.createElement('div');
+                card.className = 'artist-card';
+                card.innerHTML = `
+                    <img src="${artist.image}" alt="${artist.name}">
+                    <h3>${artist.name}</h3>
+                    <p>Created: ${artist.creationDate}</p>
+                    <p>First Album: ${artist.firstAlbum}</p>
+                `;
+                card.onclick = () => fetchArtistDetails(artist.id);
+                container.appendChild(card);
+            });
+        }
+
+        function fetchArtistDetails(id) {
+            fetch(`/api/artist/${id}`)
+                .then(response => response.json())
+                .then(data => displayArtistDetails(data))
+                .catch(error => console.error('Error:', error));
+        }
+
+        function displayArtistDetails(details) {
+            const container = document.getElementById('artist-details');
+            container.style.display = 'block';
+            container.innerHTML = `
+                <h2>${details.artist.name}</h2>
+                <img src="${details.artist.image}" alt="${details.artist.name}">
+                <p>Members: ${details.artist.members.join(', ')}</p>
+                <p>Creation Date: ${details.artist.creationDate}</p>
+                <p>First Album: ${details.artist.firstAlbum}</p>
+                <h3>Locations:</h3>
+                <ul>${details.locations.map(loc => `<li>${loc.address}</li>`).join('')}</ul>
+                <h3>Dates:</h3>
+                <ul>${details.dates.map(date => `<li>${date}</li>`).join('')}</ul>
+                <h3>Relations:</h3>
+                <ul>${Object.entries(details.relations).map(([loc, dates]) => `
+                    <li>${loc}: ${dates.join(', ')}</li>
+                `).join('')}</ul>
+            `;
+
+            displayMap(details.locations);
+        }
+
+        function displayMap(locations) {
+            if (map) {
+                map.remove();
+            }
+
+            map = new mapboxgl.Map({
+                container: 'map',
+                style: 'mapbox://styles/mapbox/streets-v11',
+                center: [0, 0],
+                zoom: 1
+            });
+
+            const bounds = new mapboxgl.LngLatBounds();
+
+            locations.forEach(location => {
+                new mapboxgl.Marker()
+                    .setLngLat([location.lon, location.lat])
+                    .setPopup(new mapboxgl.Popup().setHTML(location.address))
+                    .addTo(map);
+
+                bounds.extend([location.lon, location.lat]);
+            });
+
+            map.fitBounds(bounds, { padding: 50 });
+        }
+
+        // Initial search on page load
+        searchArtists('');
+    </script>
+</body>
+</html>
